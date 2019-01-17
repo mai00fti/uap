@@ -269,7 +269,7 @@ class TrimGalore(AbstractStep):
 
             with self.declare_run(run_id) as run:
 
-                
+
 
                 # the temporary output directory
                 outdir = run.get_output_directory_du_jour_placeholder()
@@ -277,48 +277,63 @@ class TrimGalore(AbstractStep):
                 # -o
                 prefixTG = '%s' % outdir
                 input_paths = run_ids_connections_files[run_id]
-
+                # get basename and rm the endings fastq and gz (if any)
+                bn_input_paths = os.path.basename(input_paths['in/first_read'][0])
+                tmp = re.sub("\.gz$", "", bn_input_paths)
+                bn_prefix = re.sub("\.fastq$", "", tmp)
+                if not input_paths['in/second_read'][0] is None:
+                    bn_input_paths2 = os.path.basename(input_paths['in/second_read'][0])
+                    tmp2 = re.sub("\.gz$", "", bn_input_paths2)
+                    bn_prefix2 = re.sub("\.fastq$", "", tmp2)
 
                 # remove file endings if they are given and leading underscores
                 read_types['first_read'] = re.sub( "^_(.*)\.?.*$", "\g<1>", read_types['first_read'])
 
                 if not input_paths['in/second_read'][0] is None:
                     read_types['second_read'] = re.sub( "^_(.*)\.?.*$", "\g<1>", read_types['second_read'])
-                    
+
                 if input_paths['in/first_read'][0].endswith('.gz'):
                     if not input_paths['in/second_read'][0] is None:
                         run.add_output_file('first_read',
-                                            '%s_%s_val_1.fq.gz' % ( run_id, read_types['first_read']),
+                                            '%s_val_1.fq.gz' % bn_prefix,
+#                                            '%s_%s_val_1.fq.gz' % ( bn_prefix, read_types['first_read']),
                                             input_paths['in/first_read'])
                     else:
                         run.add_output_file('first_read',
-                                            '%s_%s_trimmed.fq.gz' % ( run_id, read_types['first_read']),
+                                            '%s_trimmed.fq.gz' % bn_prefix,
+#                                            '%s_%s_trimmed.fq.gz' % ( run_id, read_types['first_read']),
                                             input_paths['in/first_read'])
 
                 else:
                     if not input_paths['in/second_read'][0] is None:
                         run.add_output_file('first_read',
-                                            '%s_%s_val_1.fq' % ( run_id, read_types['first_read']),
+                                            '%s_val_1.fq' % bn_prefix,
+#                                            '%s_%s_val_1.fq' % ( run_id, read_types['first_read']),
                                             input_paths['in/first_read'])
                     else:
                         run.add_output_file('first_read',
-                                            '%s_%s_trimmed.fq' % ( run_id, read_types['first_read']),
+                                            '%s_trimmed.fq' % bn_prefix,
+#                                            '%s_%s_trimmed.fq' % ( run_id, read_types['first_read']),
                                             input_paths['in/first_read'])
 
                 if not input_paths['in/second_read'][0] is None:
                     run.add_output_file('first_read_fastqc_zip',
-                                        '%s_%s_val_1_fastqc.zip' % ( run_id, read_types['first_read']),
+                                        '%s_val_1.fastqc.gz' % bn_prefix,
+#                                        '%s_%s_val_1_fastqc.zip' % ( run_id, read_types['first_read']),
                                         input_paths['in/first_read'])
                     run.add_output_file('first_read_fastqc_html',
-                                        '%s_%s_val_1_fastqc.html' % ( run_id, read_types['first_read']),
+                                        '%s_val_1.fastqc.html' % bn_prefix,
+#                                        '%s_%s_val_1_fastqc.html' % ( run_id, read_types['first_read']),
                                         input_paths['in/first_read'])
                 else:
                     run.add_output_file('first_read_fastqc_zip',
-                                        '%s_%s_trimmed_fastqc.zip' % ( run_id, read_types['first_read']),
+                                        '%s_trimmed_fastqc.zip' % bn_prefix,
+#                                        '%s_%s_trimmed_fastqc.zip' % ( run_id, read_types['first_read']),
                                         input_paths['in/first_read'])
                     run.add_output_file('first_read_fastqc_html',
-                                        '%s_%s_trimmed_fastqc.html' % ( run_id, read_types['first_read']),
-                                        input_paths['in/first_read']) 
+                                        '%s_trimmed_fastqc.html' % bn_prefix,
+#                                        '%s_%s_trimmed_fastqc.html' % ( run_id, read_types['first_read']),
+                                        input_paths['in/first_read'])
 
                 run.add_output_file('first_read_report',
                                         '%s_trimming_report.txt' % os.path.basename(input_paths['in/first_read'][0]),
@@ -329,18 +344,22 @@ class TrimGalore(AbstractStep):
                 if not input_paths['in/second_read'][0] is None:
                     if input_paths['in/second_read'][0].endswith('.gz'):
                         run.add_output_file('second_read',
-                                            '%s_%s_val_2.fq.gz' %( run_id, read_types['second_read']),
+                                            '%s_val_2.fq.gz' % bn_prefix2,
+#                                            '%s_%s_val_2.fq.gz' %( run_id, read_types['second_read']),
                                             input_paths['in/second_read'])
                     else:
                         run.add_output_file('second_read',
-                                            '%s_%s_val_2.fq' % ( run_id, read_types['second_read']),
+                                            '%s_val_2.fq' % bn_prefix2,
+#                                            '%s_%s_val_2.fq' % ( run_id, read_types['second_read']),
                                             input_paths['in/second_read'])
 
                     run.add_output_file('second_read_fastqc_zip',
-                                        '%s_%s_val_2_fastqc.zip' % ( run_id, read_types['second_read']),
+                                        '%s_val_2.fastq.zip' % bn_prefix2,
+#                                        '%s_%s_val_2_fastqc.zip' % ( run_id, read_types['second_read']),
                                         input_paths['in/second_read'])
                     run.add_output_file('second_read_fastqc_html',
-                                        '%s_%s_val_2_fastqc.html' % ( run_id, read_types['second_read']),
+                                        '%s_val_2.fastqc.html' % bn_prefix2,
+#                                        '%s_%s_val_2_fastqc.html' % ( run_id, read_types['second_read']),
                                         input_paths['in/second_read'])
                     run.add_output_file('second_read_report',
                                         '%s_trimming_report.txt' % os.path.basename(input_paths['in/second_read'][0]),
